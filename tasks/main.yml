@@ -137,7 +137,7 @@
 
 - name: create temp dir {{ package_comment }}{{ role_comment }}
   tempfile:
-      state: directory
+    state: directory
   register: tempfile
   no_log: "{{ debug_hide }}"
   when:
