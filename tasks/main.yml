@@ -495,7 +495,7 @@
   file:
     name: "{{ mktemp.stdout }}"
     state: absent
-  become: yes
+  become: true
   become_method: sudo
   when:
     - mktemp is defined
