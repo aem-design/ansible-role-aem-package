@@ -2,9 +2,9 @@
 
 - name: "set facts"
   set_fact:
-    install_package: no
-    install_package_ansible: no
-    install_package_docker: yes
+    install_package: false
+    install_package_ansible: false
+    install_package_docker: true
     package_comment: "[check params]"
     role_comment: "[aem]"
   tags:
@@ -33,25 +33,15 @@
       - "requires_admin: {{ requires_admin | default('<MISSING>') }}"
       - "container_name: {{ container_name }}"
       - "role_comment: {{ role_comment }}"
-#      - "container_image: {{ container_image }}"
-#      - "container_image_tag: {{ container_image_tag }}"
-#      - "container_state: {{ container_state }}"
-#      - "container_privileged: {{ container_privileged }}"
-#      - "container_published_ports: {{ container_published_ports }}"
-#      - "container_restart_policy: {{ container_restart_policy }}"
-#      - "container_volumes: {{ container_volumes }}"
-#      - "container_volume_driver: {{ container_volume_driver }}"
-#      - "container_pull: {{ container_pull }}"
-#      - "container_env: {{ container_env }}"
   tags:
     - always
 
 
 - name: check package paramters {{ package_comment }}{{ role_comment }}
   set_fact:
-    install_package: yes
-    install_package_docker: yes
-    nexus_available: no
+    install_package: true
+    install_package_docker: true
+    nexus_available: false
     package_comment: "[{{ simple_name }}]"
   when:
     - adobeaemcloud_username is defined
@@ -75,14 +65,14 @@
 
 - name: install package using ansible {{ package_comment }}{{ role_comment }}
   set_fact:
-    install_package_ansible: yes
-    install_package_docker: no
+    install_package_ansible: true
+    install_package_docker: false
   tags:
     - aem-install-package-using-ansible
 
 
 - name: check if packages state {{ package_comment }}{{ role_comment }}
-  become: no
+  become: false
   aem_check_package_installed:
     host: "{{ aem_host }}"
     port: "{{ aem_port }}"
@@ -101,7 +91,7 @@
 
 
 - name: check if packages state {{ package_comment }}{{ role_comment }}
-  become: yes
+  become: true
   pyaem_command:
     host: "{{ aem_host }}"
     port: "{{ aem_port }}"
@@ -120,16 +110,9 @@
     - aem-install-package-using-docker
 
 
-#- debug:
-#    msg: "{{ package_exist }}"
-#  when:
-#    - install_package
-#  tags:
-#    - always
-
 - name: skip role if package is installed {{ package_comment }}{{ role_comment }}
   set_fact:
-    install_package: no
+    install_package: false
   when:
     - install_package
     - not(package_exist.failed)
@@ -174,7 +157,7 @@
     url: "http://{{ maven_repository }}"
     timeout: 3
   register: nexus_ping
-  ignore_errors: yes
+  ignore_errors: true
   when:
     - install_package
   tags:
@@ -182,7 +165,7 @@
 
 - name: nexus is not available {{ package_comment }}{{ role_comment }}
   set_fact:
-    nexus_available: no
+    nexus_available: false
   when:
     - install_package
     - nexus_ping.status != 200
@@ -191,7 +174,7 @@
 
 - name: nexus registry is available {{ package_comment }}{{ role_comment }}
   set_fact:
-    nexus_available: yes
+    nexus_available: true
   when:
     - install_package
     - nexus_ping.status == 200
@@ -201,19 +184,11 @@
 - name: prep package info {{ package_comment }}{{ role_comment }}
   set_fact:
     local_package_maven_url: "{{ maven_repository_url }}/aemdesign/{{ package_name }}/{{ package_version }}/{{ file_name }}"
-    install_package_from_local_maven: no
+    install_package_from_local_maven: false
   when:
     - install_package
   tags:
     - always
-
-#- debug:
-#    msg:
-#      - "{{ local_package_maven_url }}"
-#      - "{{ maven_repository_url }}"
-#      - "{{ nexus_available }}"
-#  when:
-#    - install_package
 
 - name: check in local nexus {{ package_comment }}{{ role_comment }}
   uri:
@@ -229,14 +204,9 @@
   tags:
     - always
 
-#- debug:
-#    msg: "{{ nexus_check }}"
-#  when:
-#    - install_package
-
 - name: package in local nexus {{ package_comment }}{{ role_comment }}
   set_fact:
-    install_package_from_local_maven: yes
+    install_package_from_local_maven: true
   when:
     - install_package
     - nexus_available
@@ -246,7 +216,7 @@
 
 - name: package is not in local nexus {{ package_comment }}{{ role_comment }}
   set_fact:
-    install_package_from_local_maven: no
+    install_package_from_local_maven: false
   when:
     - install_package
     - nexus_available
@@ -269,7 +239,7 @@
     - always
 
 - name: download from adobe cloud {{ package_comment }}{{ role_comment }}
-  become: no
+  become: false
   get_url:
     url: "{{ package_url }}"
     dest: "{{ role_files_dir }}/{{ file_name }}"
@@ -297,7 +267,7 @@
 
 - name: cache in local maven {{ package_comment }}{{ role_comment }}
   include_role:
-    name: nexus-upload-artifact
+    name: aem_design.nexus_upload_artifact
   vars:
     nexus_username: "{{ maven_repository_username }}"
     nexus_password: "{{ maven_repository_password }}"
@@ -311,7 +281,7 @@
     - always
 
 - name: upload package to aem {{ package_comment }}{{ role_comment }}
-  become: yes
+  become: true
   pyaem_command:
     host: "{{ aem_host }}"
     port: "{{ aem_port }}"
@@ -353,7 +323,7 @@
     - aem-install-package-using-ansible
 
 - name: upload package to aem override filename {{ package_comment }}{{ role_comment }}
-  become: yes
+  become: true
   pyaem_command:
     host: "{{ aem_host }}"
     port: "{{ aem_port }}"
@@ -374,7 +344,7 @@
     - file_override is defined and file_override
 
 - name: verify package uploaded {{ package_comment }}{{ role_comment }}
-  become: yes
+  become: true
   pyaem_command:
     host: "{{ aem_host }}"
     port: "{{ aem_port }}"
@@ -416,7 +386,7 @@
 
 
 - name: install package {{ package_comment }}{{ role_comment }}
-  become: yes
+  become: true
   pyaem_command:
     host: "{{ aem_host }}"
     port: "{{ aem_port }}"
@@ -464,7 +434,7 @@
     - always
 
 - name: ensure packages installed {{ package_comment }}{{ role_comment }}
-  become: yes
+  become: true
   pyaem_command:
     host: "{{ aem_host }}"
     port: "{{ aem_port }}"
@@ -483,7 +453,7 @@
     - install_package_docker
 
 - name: ensure packages installed {{ package_comment }}{{ role_comment }}
-  become: no
+  become: false
   aem_check_package_installed:
     host: "{{ aem_host }}"
     port: "{{ aem_port }}"
@@ -502,49 +472,15 @@
   tags:
     - aem-install-package-using-ansible
 
-
-#- name: restart container params {{ package_comment }}{{ role_comment }}
-#  debug:
-#    msg:
-#      - "restart: yes"
-#      - "container_name: {{ container_name }}"
-#      - "container_image: {{ container_image }}"
-#      - "container_state: {{ container_state }}"
-#      - "container_privileged: {{ container_privileged }}"
-#      - "container_published_ports: {{ container_published_ports }}"
-#      - "container_restart_policy: {{ container_restart_policy }}"
-#      - "container_volumes: {{ container_volumes }}"
-#      - "container_volume_driver: {{ container_volume_driver }}"
-#      - "container_pull: {{ container_pull }}"
-#      - "container_env: {{ container_env }}"
-#  when:
-#    - install_package
-
 - name: restart container {{ package_comment }}{{ role_comment }}
-  shell: "docker stop {{ container_name }}"
+  include_role:
+    name: aem_design.docker_container
+  vars:
+    docker_container_name: "{{ container_name }}"
+    docker_container_restart: true
   when:
     - install_package
     - requires_restart
-  tags:
-    - always
-
-- name: restart container {{ package_comment }}{{ role_comment }}
-  shell: "docker start {{ container_name }}"
-  when:
-    - install_package
-    - requires_restart
-  tags:
-    - always
-
-#- name: restart container {{ package_comment }}{{ role_comment }}
-#  include_role:
-#    name: aem_design.docker_container
-#  vars:
-#    docker_container_name: "{{ container_name }}"
-#    restart: yes
-#  when:
-#    - install_package
-#    - requires_restart
 
 - name: ensure instance is ready {{ package_comment }}{{ role_comment }}
   include_role:
@@ -555,8 +491,12 @@
   tags:
     - always
 
-- name: cleanup files on server {{ package_comment }}{{ role_comment }}
-  include_role:
-    name: config-files-cleanup
-  tags:
-    - always
+- name: removing temp directory {{ role_comment | default('') }}
+  file:
+    name: "{{ mktemp.stdout }}"
+    state: absent
+  become: yes
+  become_method: sudo
+  when:
+    - mktemp is defined
+    - mktemp.stdout is defined
