@@ -1,0 +1,562 @@
+---
+
+- name: "set facts"
+  set_fact:
+    install_package: no
+    install_package_ansible: no
+    install_package_docker: yes
+    package_comment: "[check params]"
+    role_comment: "[aem]"
+  tags:
+    - always
+
+- name: process package parameters {{ package_comment }}{{ role_comment }}
+  no_log: "{{ debug_hide }}"
+  debug:
+    msg:
+      - "adobeaemcloud_username: {{ adobeaemcloud_username | default('<MISSING>') }}"
+      - "adobeaemcloud_password: {{ adobeaemcloud_password | default('<MISSING>') }}"
+      - "aem_host: {{ aem_host | default('<MISSING>')  }}"
+      - "aem_port: {{ aem_port | default('<MISSING>') }}"
+      - "aem_username: {{ aem_username | default('<MISSING>') }}"
+      - "aem_password: {{ aem_password | default('<MISSING>') }}"
+      - "group_name: {{ group_name | default('<MISSING>') }}"
+      - "package_name: {{ package_name | default('<MISSING>') }}"
+      - "package_version: {{ package_version | default('<MISSING>') }}"
+      - "package_source: {{ package_source | default('<MISSING>') }}"
+      - "package_url: {{ package_url | default('<MISSING>') }}"
+      - "file_name: {{ file_name | default('<MISSING>') }}"
+      - "file_override: {{ file_override | default('<MISSING>') }}"
+      - "file_override_package_name: {{ file_override_package_name | default('<MISSING>') }}"
+      - "simple_name: {{ simple_name | default('<MISSING>') }}"
+      - "requires_restart: {{ requires_restart | default('<MISSING>') }}"
+      - "requires_admin: {{ requires_admin | default('<MISSING>') }}"
+      - "container_name: {{ container_name }}"
+      - "role_comment: {{ role_comment }}"
+#      - "container_image: {{ container_image }}"
+#      - "container_image_tag: {{ container_image_tag }}"
+#      - "container_state: {{ container_state }}"
+#      - "container_privileged: {{ container_privileged }}"
+#      - "container_published_ports: {{ container_published_ports }}"
+#      - "container_restart_policy: {{ container_restart_policy }}"
+#      - "container_volumes: {{ container_volumes }}"
+#      - "container_volume_driver: {{ container_volume_driver }}"
+#      - "container_pull: {{ container_pull }}"
+#      - "container_env: {{ container_env }}"
+  tags:
+    - always
+
+
+- name: check package paramters {{ package_comment }}{{ role_comment }}
+  set_fact:
+    install_package: yes
+    install_package_docker: yes
+    nexus_available: no
+    package_comment: "[{{ simple_name }}]"
+  when:
+    - adobeaemcloud_username is defined
+    - adobeaemcloud_password is defined
+    - aem_host is defined
+    - aem_port is defined
+    - aem_username is defined
+    - aem_password is defined
+    - group_name is defined
+    - package_name is defined
+    - package_version is defined
+    - package_url is defined
+    - package_source is defined
+    - file_name is defined
+    - simple_name is defined
+    - requires_restart is defined
+    - requires_admin is defined
+    - container_name is defined
+  tags:
+    - always
+
+- name: install package using ansible {{ package_comment }}{{ role_comment }}
+  set_fact:
+    install_package_ansible: yes
+    install_package_docker: no
+  tags:
+    - aem-install-package-using-ansible
+
+
+- name: check if packages state {{ package_comment }}{{ role_comment }}
+  become: no
+  aem_check_package_installed:
+    host: "{{ aem_host }}"
+    port: "{{ aem_port }}"
+    group_name: "{{ group_name }}"
+    package_name: "{{ package_name }}"
+    package_version: "{{ package_version }}"
+    aem_username: "{{ aem_username }}"
+    aem_password: "{{ aem_password }}"
+  register: package_exist
+  ignore_errors: true
+  when:
+    - install_package
+    - install_package_ansible
+  tags:
+    - aem-install-package-using-ansible
+
+
+- name: check if packages state {{ package_comment }}{{ role_comment }}
+  become: yes
+  pyaem_command:
+    host: "{{ aem_host }}"
+    port: "{{ aem_port }}"
+    group_name: "{{ group_name }}"
+    package_name: "{{ package_name }}"
+    package_version: "{{ package_version }}"
+    aem_username: "{{ aem_username }}"
+    aem_password: "{{ aem_password }}"
+    api_command: "is_package_installed"
+  register: package_exist
+  ignore_errors: true
+  when:
+    - install_package
+    - install_package_docker
+  tags:
+    - aem-install-package-using-docker
+
+
+#- debug:
+#    msg: "{{ package_exist }}"
+#  when:
+#    - install_package
+#  tags:
+#    - always
+
+- name: skip role if package is installed {{ package_comment }}{{ role_comment }}
+  set_fact:
+    install_package: no
+  when:
+    - install_package
+    - not(package_exist.failed)
+  tags:
+    - always
+
+- name: package already installed skipping {{ package_comment }}{{ role_comment }}
+  debug:
+    msg: "package already installed"
+  when:
+    - not(install_package)
+  tags:
+    - always
+
+- name: installing package {{ package_comment }}{{ role_comment }}
+  debug:
+    msg: "package is not installed"
+  when:
+    - install_package
+  tags:
+    - always
+
+- name: create temp dir {{ package_comment }}{{ role_comment }}
+  shell: "mktemp -d"
+  register: mktemp
+  no_log: "{{ debug_hide }}"
+  when:
+    - install_package
+  tags:
+    - always
+
+- name: use temp dir {{ package_comment }}{{ role_comment }}
+  set_fact:
+    role_files_dir: "{{ mktemp.stdout }}"
+  when:
+    - install_package
+  tags:
+    - always
+
+- name: check if nexus is available {{ package_comment }}{{ role_comment }}
+  uri:
+    url: "http://{{ maven_repository }}"
+    timeout: 3
+  register: nexus_ping
+  ignore_errors: yes
+  when:
+    - install_package
+  tags:
+    - always
+
+- name: nexus is not available {{ package_comment }}{{ role_comment }}
+  set_fact:
+    nexus_available: no
+  when:
+    - install_package
+    - nexus_ping.status != 200
+  tags:
+    - always
+
+- name: nexus registry is available {{ package_comment }}{{ role_comment }}
+  set_fact:
+    nexus_available: yes
+  when:
+    - install_package
+    - nexus_ping.status == 200
+  tags:
+    - always
+
+- name: prep package info {{ package_comment }}{{ role_comment }}
+  set_fact:
+    local_package_maven_url: "{{ maven_repository_url }}/aemdesign/{{ package_name }}/{{ package_version }}/{{ file_name }}"
+    install_package_from_local_maven: no
+  when:
+    - install_package
+  tags:
+    - always
+
+#- debug:
+#    msg:
+#      - "{{ local_package_maven_url }}"
+#      - "{{ maven_repository_url }}"
+#      - "{{ nexus_available }}"
+#  when:
+#    - install_package
+
+- name: check in local nexus {{ package_comment }}{{ role_comment }}
+  uri:
+    method: HEAD
+    url: "{{ local_package_maven_url }}"
+    status_code: 200
+  register: nexus_check
+  ignore_errors: true
+  no_log: "{{ debug_hide }}"
+  when:
+    - install_package
+    - nexus_available
+  tags:
+    - always
+
+#- debug:
+#    msg: "{{ nexus_check }}"
+#  when:
+#    - install_package
+
+- name: package in local nexus {{ package_comment }}{{ role_comment }}
+  set_fact:
+    install_package_from_local_maven: yes
+  when:
+    - install_package
+    - nexus_available
+    - nexus_check.status == 200
+  tags:
+    - always
+
+- name: package is not in local nexus {{ package_comment }}{{ role_comment }}
+  set_fact:
+    install_package_from_local_maven: no
+  when:
+    - install_package
+    - nexus_available
+    - nexus_check.status == 404
+  tags:
+    - always
+
+- name: get from local nexus {{ package_comment }}{{ role_comment }}
+  uri:
+    url: "{{ local_package_maven_url }}"
+    dest: "{{ role_files_dir }}/{{ file_name }}"
+    status_code: 200
+  register: download_package
+  ignore_errors: true
+  when:
+    - install_package
+    - nexus_available
+    - install_package_from_local_maven
+  tags:
+    - always
+
+- name: download from adobe cloud {{ package_comment }}{{ role_comment }}
+  become: no
+  get_url:
+    url: "{{ package_url }}"
+    dest: "{{ role_files_dir }}/{{ file_name }}"
+    url_password: "{{ adobeaemcloud_password }}"
+    url_username: "{{ adobeaemcloud_username }}"
+  register: download_package
+  when:
+    - install_package
+    - package_source == "adobecloud"
+    - not(install_package_from_local_maven)
+  tags:
+    - always
+
+- name: download directly {{ package_comment }}{{ role_comment }}
+  get_url:
+    url: "{{ package_url }}"
+    dest: "{{ role_files_dir }}/{{ file_name }}"
+  register: download_package
+  when:
+    - install_package
+    - package_source != "adobecloud"
+    - not(install_package_from_local_maven)
+  tags:
+    - always
+
+- name: cache in local maven {{ package_comment }}{{ role_comment }}
+  include_role:
+    name: nexus-upload-artifact
+  vars:
+    nexus_username: "{{ maven_repository_username }}"
+    nexus_password: "{{ maven_repository_password }}"
+    fullfilepath: "{{ role_files_dir }}/{{ file_name }}"
+    nexus_url: "{{ local_package_maven_url }}"
+  when:
+    - install_package
+    - nexus_available
+    - not(install_package_from_local_maven)
+  tags:
+    - always
+
+- name: upload package to aem {{ package_comment }}{{ role_comment }}
+  become: yes
+  pyaem_command:
+    host: "{{ aem_host }}"
+    port: "{{ aem_port }}"
+    group_name: "{{ group_name }}"
+    package_name: "{{ package_name }}"
+    package_version: "{{ package_version }}"
+    file_path: "{{ role_files_dir }}"
+    aem_username: "{{ aem_username }}"
+    aem_password: "{{ aem_password }}"
+    api_command: "upload_package_sync"
+  register: result
+  until: result is success
+  retries: 1
+  delay: 0
+  when:
+    - install_package
+    - install_package_docker
+    - file_override is not defined or not(file_override)
+
+- name: upload package to aem {{ package_comment }}{{ role_comment }}
+  aem_upload_package:
+    host: "{{ aem_host }}"
+    port: "{{ aem_port }}"
+    group_name: "{{ group_name }}"
+    package_name: "{{ package_name }}"
+    package_version: "{{ package_version }}"
+    file_path: "{{ role_files_dir }}"
+    aem_username: "{{ aem_username }}"
+    aem_password: "{{ aem_password }}"
+  register: result
+  until: result is success
+  retries: 180
+  delay: 5
+  when:
+    - install_package
+    - install_package_ansible
+    - file_override is not defined or not(file_override)
+  tags:
+    - aem-install-package-using-ansible
+
+- name: upload package to aem override filename {{ package_comment }}{{ role_comment }}
+  become: yes
+  pyaem_command:
+    host: "{{ aem_host }}"
+    port: "{{ aem_port }}"
+    group_name: "{{ group_name }}"
+    package_name: "{{ file_override_package_name }}"
+    package_version: "{{ package_version }}"
+    file_path: "{{ role_files_dir }}"
+    aem_username: "{{ aem_username }}"
+    aem_password: "{{ aem_password }}"
+    api_command: "upload_package_sync"
+  register: result
+  until: result is success
+  retries: 180
+  delay: 5
+  when:
+    - install_package
+    - install_package_docker
+    - file_override is defined and file_override
+
+- name: verify package uploaded {{ package_comment }}{{ role_comment }}
+  become: yes
+  pyaem_command:
+    host: "{{ aem_host }}"
+    port: "{{ aem_port }}"
+    group_name: "{{ group_name }}"
+    package_name: "{{ package_name }}"
+    package_version: "{{ package_version }}"
+    aem_username: "{{ aem_username }}"
+    aem_password: "{{ aem_password }}"
+    api_command: "is_package_uploaded"
+  register: result
+  until: result is success
+  retries: 1
+  delay: 0
+  when:
+    - install_package
+    - install_package_docker
+  tags:
+    - aem-install-package-using-docker
+
+
+- name: verify package uploaded {{ package_comment }}{{ role_comment }}
+  aem_check_package_uploaded:
+    host: "{{ aem_host }}"
+    port: "{{ aem_port }}"
+    group_name: "{{ group_name }}"
+    package_name: "{{ package_name }}"
+    package_version: "{{ package_version }}"
+    aem_username: "{{ aem_username }}"
+    aem_password: "{{ aem_password }}"
+  register: result
+  until: result is success
+  retries: 180
+  delay: 5
+  when:
+    - install_package
+    - install_package_ansible
+  tags:
+    - aem-install-package-using-ansible
+
+
+- name: install package {{ package_comment }}{{ role_comment }}
+  become: yes
+  pyaem_command:
+    host: "{{ aem_host }}"
+    port: "{{ aem_port }}"
+    group_name: "{{ group_name }}"
+    package_name: "{{ package_name }}"
+    package_version: "{{ package_version }}"
+    aem_username: "{{ aem_username }}"
+    aem_password: "{{ aem_password }}"
+    api_command: "install_package_sync"
+  register: result
+  until: result is success
+  retries: 180
+  delay: 5
+  when:
+    - install_package
+    - install_package_docker
+
+
+- name: install package {{ package_comment }}{{ role_comment }}
+  aem_install_package:
+    host: "{{ aem_host }}"
+    port: "{{ aem_port }}"
+    group_name: "{{ group_name }}"
+    package_name: "{{ package_name }}"
+    package_version: "{{ package_version }}"
+    aem_username: "{{ aem_username }}"
+    aem_password: "{{ aem_password }}"
+  register: result
+  until: result is success
+  retries: 180
+  delay: 5
+  when:
+    - install_package
+    - install_package_ansible
+  tags:
+    - aem-install-package-using-ansible
+
+
+- name: wait for packages installed completed {{ package_comment }}{{ role_comment }}
+  include_role:
+    name: aem_design.aem_verify
+  when:
+    - install_package
+  tags:
+    - always
+
+- name: ensure packages installed {{ package_comment }}{{ role_comment }}
+  become: yes
+  pyaem_command:
+    host: "{{ aem_host }}"
+    port: "{{ aem_port }}"
+    group_name: "{{ group_name }}"
+    package_name: "{{ package_name }}"
+    package_version: "{{ package_version }}"
+    aem_username: "{{ aem_username }}"
+    aem_password: "{{ aem_password }}"
+    api_command: "is_package_installed"
+  register: result
+  until: result is success
+  retries: 180
+  delay: 5
+  when:
+    - install_package
+    - install_package_docker
+
+- name: ensure packages installed {{ package_comment }}{{ role_comment }}
+  become: no
+  aem_check_package_installed:
+    host: "{{ aem_host }}"
+    port: "{{ aem_port }}"
+    group_name: "{{ group_name }}"
+    package_name: "{{ package_name }}"
+    package_version: "{{ package_version }}"
+    aem_username: "{{ aem_username }}"
+    aem_password: "{{ aem_password }}"
+  register: result
+  until: result is success
+  retries: 180
+  delay: 5
+  when:
+    - install_package
+    - install_package_ansible
+  tags:
+    - aem-install-package-using-ansible
+
+
+#- name: restart container params {{ package_comment }}{{ role_comment }}
+#  debug:
+#    msg:
+#      - "restart: yes"
+#      - "container_name: {{ container_name }}"
+#      - "container_image: {{ container_image }}"
+#      - "container_state: {{ container_state }}"
+#      - "container_privileged: {{ container_privileged }}"
+#      - "container_published_ports: {{ container_published_ports }}"
+#      - "container_restart_policy: {{ container_restart_policy }}"
+#      - "container_volumes: {{ container_volumes }}"
+#      - "container_volume_driver: {{ container_volume_driver }}"
+#      - "container_pull: {{ container_pull }}"
+#      - "container_env: {{ container_env }}"
+#  when:
+#    - install_package
+
+- name: restart container {{ package_comment }}{{ role_comment }}
+  shell: "docker stop {{ container_name }}"
+  when:
+    - install_package
+    - requires_restart
+  tags:
+    - always
+
+- name: restart container {{ package_comment }}{{ role_comment }}
+  shell: "docker start {{ container_name }}"
+  when:
+    - install_package
+    - requires_restart
+  tags:
+    - always
+
+#- name: restart container {{ package_comment }}{{ role_comment }}
+#  include_role:
+#    name: aem_design.docker_container
+#  vars:
+#    docker_container_name: "{{ container_name }}"
+#    restart: yes
+#  when:
+#    - install_package
+#    - requires_restart
+
+- name: ensure instance is ready {{ package_comment }}{{ role_comment }}
+  include_role:
+    name: aem_design.aem_verify
+  when:
+    - install_package
+    - requires_restart
+  tags:
+    - always
+
+- name: cleanup files on server {{ package_comment }}{{ role_comment }}
+  include_role:
+    name: config-files-cleanup
+  tags:
+    - always

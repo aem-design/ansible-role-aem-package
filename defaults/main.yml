@@ -1,0 +1,22 @@
+---
+
+# shared or per package parameters
+adobeaemcloud_username: ""                  # will be used to login to adobe cloud
+adobeaemcloud_password: ""                  # will be used to login to adobe cloud
+aem_host: "localhost"
+aem_port: "4502"
+aem_username: "admin"
+aem_password: "admin"
+
+# package specific, can come from adobe cloud package details
+group_name: ""                              # group of package
+package_name: ""                            # package name
+package_version: ""                         # package name
+package_source: ""                          # source type used to determine how to handle package url
+package_url: ""                             # package url
+file_name: ""                               # download filename
+file_override: ""                           # override package name that has been downloaded
+file_override_package_name: ""              # package name to override
+simple_name: ""                             # simple name for package
+requires_restart: ""                        # package restart required
+requires_admin: ""                          # package required admin
