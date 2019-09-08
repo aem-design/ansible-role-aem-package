@@ -136,8 +136,9 @@
     - always
 
 - name: create temp dir {{ package_comment }}{{ role_comment }}
-  shell: "mktemp -d"
-  register: mktemp
+  tempfile:
+      state: directory
+  register: tempfile
   no_log: "{{ debug_hide }}"
   when:
     - install_package
@@ -146,7 +147,7 @@
 
 - name: use temp dir {{ package_comment }}{{ role_comment }}
   set_fact:
-    role_files_dir: "{{ mktemp.stdout }}"
+    role_files_dir: "{{ tempfile.path }}"
   when:
     - install_package
   tags:
@@ -493,10 +494,10 @@
 
 - name: removing temp directory {{ role_comment | default('') }}
   file:
-    name: "{{ mktemp.stdout }}"
+    name: "{{ tempfile.path }}"
     state: absent
   become: true
   become_method: sudo
   when:
-    - mktemp is defined
-    - mktemp.stdout is defined
+    - tempfile is defined
+    - tempfile.path is defined
