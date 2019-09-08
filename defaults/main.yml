@@ -7,6 +7,7 @@ aem_host: "localhost"
 aem_port: "4502"
 aem_username: "admin"
 aem_password: "admin"
+maven_repository: "localhost"               # will be used to get and store packages if available
 
 # package specific, can come from adobe cloud package details
 group_name: ""                              # group of package

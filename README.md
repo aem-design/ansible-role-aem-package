@@ -22,7 +22,7 @@ Available variables are listed below, along with default values (see `defaults/m
 | aem_port                   	| yes      	| 4502      	|                                                         	|
 | aem_username               	| yes      	| admin     	|                                                         	|
 | aem_password               	| yes      	| admin     	|                                                         	|
-|                            	|          	|           	|                                                         	|
+| maven_repository           	| yes      	| localhost    	| will be used to get and store packages if available     	|
 | group_name                 	| yes      	|           	| group of package                                        	|
 | package_name               	| yes      	|           	| package name                                            	|
 | package_version            	| yes      	|           	| package name                                            	|
