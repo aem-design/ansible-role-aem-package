@@ -23,6 +23,7 @@ Available variables are listed below, along with default values (see `defaults/m
 | aem_username               	| yes      	| admin     	|                                                         	|
 | aem_password               	| yes      	| admin     	|                                                         	|
 | maven_repository           	| yes      	| localhost    	| will be used to get and store packages if available     	|
+| container_name: "author"      | yes      	| "author"      | used to restart container if installed package requires restart|
 | group_name                 	| yes      	|           	| group of package                                        	|
 | package_name               	| yes      	|           	| package name                                            	|
 | package_version            	| yes      	|           	| package name                                            	|
