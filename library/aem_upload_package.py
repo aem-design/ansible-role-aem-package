@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import os
-import pyaem
+import pyaem2
 import commands
 import time
 import json

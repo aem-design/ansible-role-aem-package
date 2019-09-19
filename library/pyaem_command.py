@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import os
-# import pyaem
+# import pyaem2
 import commands
 import time
 import json
@@ -86,7 +86,7 @@ def main ():
         return False
 
     #join pyaem init and function commands
-    params['pyaemscript'] = "-c \"import json; import pyaem; %(pyaem_init)s %(pyaem_cmd)s %(pyaem_error)s \"" % params
+    params['pyaemscript'] = "-c \"import json; import pyaem2; %(pyaem_init)s %(pyaem_cmd)s %(pyaem_error)s \"" % params
 
     #create helper for debugging
     params['pyaemscriptmanual'] = "docker run -it --privileged --entrypoint %(container_entrypoint)s -v %(container_volume)s %(container_image)s %(pyaemscript)s" % params
