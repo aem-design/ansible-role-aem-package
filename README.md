@@ -41,7 +41,7 @@ Available variables are listed below, along with default values (see `defaults/m
 This role depends on roles:
  
 - `aem_design.nexus_upload_artifact`
-- `aem_design.docker_container`
+- `aem_design.aem_license`
 - `aem_design.aem_verify`
 
 ## Example Playbook
