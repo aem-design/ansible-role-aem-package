@@ -16,8 +16,8 @@ Available variables are listed below, along with default values (see `defaults/m
 
 | Name                       	| Required 	| Default   	| Notes                                                   	|
 |----------------------------	|----------	|-----------	|---------------------------------------------------------	|
-| adobeaemcloud_username     	| yes      	|           	| will be used to login to adobe cloud                    	|
-| adobeaemcloud_password     	| yes      	|           	| will be used to login to adobe cloud                    	|
+| adobe_cloud_username       	| yes      	|           	| will be used to login to adobe cloud                    	|
+| adobe_cloud_password      	| yes      	|           	| will be used to login to adobe cloud                    	|
 | aem_host                   	| yes      	| localhost 	|                                                         	|
 | aem_port                   	| yes      	| 4502      	|                                                         	|
 | aem_username               	| yes      	| admin     	|                                                         	|
@@ -51,8 +51,8 @@ This role depends on roles:
   include_role:
     name: aem-package
   vars:
-    adobeaemcloud_username: "{{ adobeaemcloud_username }}"
-    adobeaemcloud_password: "{{ adobeaemcloud_password }}"
+    adobe_cloud_username: "{{ adobe_cloud_username }}"
+    adobe_cloud_password: "{{ adobe_cloud_password }}"
     aem_host: "{{ aem_host }}"
     aem_port: "{{ aem_port }}"
     aem_username: "{{ aem_username }}"

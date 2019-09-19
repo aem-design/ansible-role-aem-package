@@ -14,8 +14,8 @@
   no_log: "{{ debug_hide }}"
   debug:
     msg:
-      - "adobeaemcloud_username: {{ adobeaemcloud_username | default('<MISSING>') }}"
-      - "adobeaemcloud_password: {{ adobeaemcloud_password | default('<MISSING>') }}"
+      - "adobe_cloud_username: {{ adobe_cloud_username | default('<MISSING>') }}"
+      - "adobe_cloud_password: {{ adobe_cloud_password | default('<MISSING>') }}"
       - "aem_host: {{ aem_host | default('<MISSING>')  }}"
       - "aem_port: {{ aem_port | default('<MISSING>') }}"
       - "aem_username: {{ aem_username | default('<MISSING>') }}"
@@ -44,8 +44,8 @@
     nexus_available: false
     package_comment: "[{{ simple_name }}]"
   when:
-    - adobeaemcloud_username is defined
-    - adobeaemcloud_password is defined
+    - adobe_cloud_username is defined
+    - adobe_cloud_password is defined
     - aem_host is defined
     - aem_port is defined
     - aem_username is defined
@@ -244,8 +244,8 @@
   get_url:
     url: "{{ package_url }}"
     dest: "{{ role_files_dir }}/{{ file_name }}"
-    url_password: "{{ adobeaemcloud_password }}"
-    url_username: "{{ adobeaemcloud_username }}"
+    url_password: "{{ adobe_cloud_password }}"
+    url_username: "{{ adobe_cloud_username }}"
   register: download_package
   when:
     - install_package

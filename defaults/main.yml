@@ -1,8 +1,8 @@
 ---
 
 # shared or per package parameters
-adobeaemcloud_username: ""                  # will be used to login to adobe cloud
-adobeaemcloud_password: ""                  # will be used to login to adobe cloud
+adobe_cloud_username: ""                    # will be used to login to adobe cloud
+adobe_cloud_password: ""                    # will be used to login to adobe cloud
 aem_host: "localhost"
 aem_port: "4502"
 aem_username: "admin"
