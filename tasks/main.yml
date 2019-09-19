@@ -474,11 +474,9 @@
     - aem-install-package-using-ansible
 
 - name: restart container {{ package_comment }}{{ role_comment }}
-  include_role:
-    name: aem_design.docker_container
-  vars:
-    docker_container_name: "{{ container_name }}"
-    docker_container_restart: true
+  docker_container:
+    name: "{{ container_name }}"
+    state: restarted
   when:
     - install_package
     - requires_restart
