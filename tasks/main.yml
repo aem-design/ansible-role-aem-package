@@ -266,20 +266,20 @@
   tags:
     - always
 
-- name: cache in local maven {{ package_comment }}{{ role_comment }}
-  include_role:
-    name: aem_design.nexus_upload_artifact
-  vars:
-    nexus_username: "{{ maven_repository_username }}"
-    nexus_password: "{{ maven_repository_password }}"
-    fullfilepath: "{{ role_files_dir }}/{{ file_name }}"
-    nexus_url: "{{ local_package_maven_url }}"
-  when:
-    - install_package
-    - nexus_available
-    - not(install_package_from_local_maven)
-  tags:
-    - always
+#- name: cache in local maven {{ package_comment }}{{ role_comment }}
+#  include_role:
+#    name: aem_design.nexus_upload_artifact
+#  vars:
+#    nexus_username: "{{ maven_repository_username }}"
+#    nexus_password: "{{ maven_repository_password }}"
+#    fullfilepath: "{{ role_files_dir }}/{{ file_name }}"
+#    nexus_url: "{{ local_package_maven_url }}"
+#  when:
+#    - install_package
+#    - nexus_available
+#    - not(install_package_from_local_maven)
+#  tags:
+#    - always
 
 - name: upload package to aem {{ package_comment }}{{ role_comment }}
   become: true
