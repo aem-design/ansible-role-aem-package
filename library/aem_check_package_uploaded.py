@@ -27,7 +27,7 @@ def main ():
     aem_username = module.params['aem_username']
     aem_password = module.params['aem_password']
 
-    aem = pyaem.PyAem(aem_username, aem_password, host, port)
+    aem = pyaem2.PyAem2(aem_username, aem_password, host, port)
     result = aem.is_package_uploaded(group_name, package_name, package_version)
 
     if result.is_failure():

@@ -47,8 +47,8 @@ def main ():
 
     hostconfig=client.create_host_config()
 
-    #create pyaem init command
-    params['pyaem_init'] = "aem = pyaem.PyAem('%(aem_username)s', '%(aem_password)s', '%(host)s', '%(port)s'); " % params
+    #create pyaem2 init command
+    params['pyaem_init'] = "aem = pyaem2.PyAem2('%(aem_username)s', '%(aem_password)s', '%(host)s', '%(port)s'); " % params
     # params['pyaem_error'] = "if result.is_failure(): print(json.dumps({ 'failed': True, 'msg': result.message })); else: print(json.dumps({ 'msg': result.message }));"
     params['pyaem_error'] = "print( json.dumps({ 'failed': True, 'msg': result.message }) if result.is_failure() else json.dumps({ 'msg': result.message }) )"
 
