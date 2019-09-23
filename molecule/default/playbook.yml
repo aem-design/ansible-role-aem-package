@@ -7,7 +7,7 @@
     role_name: "{% if lookup('env','ROLE_NAME_FULL') %}{{ lookup('env','ROLE_NAME_FULL') }}{% else %}{{ local_role_name }}{% endif %}"
 
   pre_tasks:
-    - name: Update apt cache.
+    - name: update apt cache.
       apt: update_cache=yes cache_valid_time=600
       when: ansible_os_family == 'Debian'
 
@@ -34,30 +34,69 @@
       role: "{{ role_name }}",
       aem_port: "5502",
       aem_host: "{{ dockerhost_ip.stdout }}",
-      adobe_cloud_username: "{{ service_adobe_cloud_username }}",
-      adobe_cloud_password: "{{ service_adobe_cloud_password }}",
-      debug_hide: false
-      package_files:
-        - {
-          package_source: "adobecloud",
-          simple_name: "vanityurls",
-          file_name: 'vanityurls-components-1.0.2.zip',
-          version: '1.0.2',
-          group_name: 'Adobe',
-          package_name: 'vanityurls-components',
-          requires_restart: false,
-          requires_admin: false,
-          package_url: "https://www.adobeaemcloud.com/content/companies/public/adobe/packages/cq600/component/vanityurls-components/jcr%3acontent/package/file.res/vanityurls-components-1.0.2.zip"
-        }
-        - {
-          package_source: "maven",
-          simple_name: "acs twitter",
-          file_name: 'com.adobe.acs.bundles.twitter4j-content-1.0.0.zip',
-          version: '1.0.0',
-          group_name: 'day_internal/consulting',
-          package_name: 'com.adobe.acs.bundles.twitter4j-content',
-          requires_restart: false,
-          requires_admin: false,
-          package_url: 'https://github.com/Adobe-Consulting-Services/com.adobe.acs.bundles.twitter4j/releases/download/com.adobe.acs.bundles.twitter4j-1.0.0/com.adobe.acs.bundles.twitter4j-content-1.0.0.zip'
-        }
+      maven_repository_url: "http://{{ dockerhost_ip.stdout }}",
+      debug_hide: "false",
+      simple_name: "vanityurls",
+      group_name: "Adobe",
+      package_version: "1.0.2",
+      package_name: "vanityurls-components",
+      package_url: "https://www.adobeaemcloud.com/content/companies/public/adobe/packages/\
+      cq600/component/vanityurls-components/jcr%3acontent/package/file.res/vanityurls-components-1.0.2.zip",
+      file_name: "vanityurls-components-1.0.2.zip",
+      file_url_username: "{{ service_adobe_cloud_username }}",
+      file_url_password: "{{ service_adobe_cloud_password }}",
+      install_package_ansible: false,
+      install_package_docker: true,
+      docker_url: "unix://tmp/docker.sock"
+    }
+    - {
+      role: "{{ role_name }}",
+      aem_port: "5502",
+      aem_host: "{{ dockerhost_ip.stdout }}",
+      debug_hide: "false",
+      simple_name: "acs twitter",
+      group_name: "day_internal/consulting",
+      package_version: "1.0.0",
+      package_name: "com.adobe.acs.bundles.twitter4j-content",
+      package_url: "https://github.com/Adobe-Consulting-Services/com.adobe.acs.bundles.twitter4j/\
+      releases/download/com.adobe.acs.bundles.twitter4j-1.0.0/com.adobe.acs.bundles.twitter4j-content-1.0.0.zip",
+      file_name: "com.adobe.acs.bundles.twitter4j-content-1.0.0.zip",
+      install_package_ansible: false,
+      install_package_docker: true,
+      docker_url: "unix://tmp/docker.sock"
+    }
+    - {
+      role: "{{ role_name }}",
+      aem_port: "5502",
+      aem_host: "{{ dockerhost_ip.stdout }}",
+      debug_hide: "false",
+      simple_name: "aemdesign-aem-core",
+      group_name: "design.aem",
+      package_version: "2.0.521",
+      package_name: "aemdesign-aem-core-deploy",
+      package_url: "https://github.com/aem-design/aemdesign-aem-core/releases/download/2.0.521/\
+      aemdesign-aem-core-deploy-2.0.521.zip",
+      file_name: "aemdesign-aem-core-deploy-2.0.521.zip",
+      install_package_ansible: true,
+      install_package_docker: false,
+      docker_url: "unix://tmp/docker.sock"
+    }
+    - {
+      role: "{{ role_name }}",
+      aem_port: "5502",
+      aem_host: "{{ dockerhost_ip.stdout }}",
+      maven_repository_url: "http://{{ dockerhost_ip.stdout }}",
+      file_url_username: "{{ service_adobe_cloud_username }}",
+      file_url_password: "{{ service_adobe_cloud_password }}",
+      debug_hide: "false",
+      simple_name: "vanityurls",
+      group_name: "Adobe",
+      package_version: "1.0.2",
+      package_name: "vanityurls-components",
+      package_url: "https://www.adobeaemcloud.com/content/companies/public/adobe/packages/\
+      cq600/component/vanityurls-components/jcr%3acontent/package/file.res/vanityurls-components-1.0.2.zip",
+      file_name: "vanityurls-components-1.0.2.zip",
+      install_package_ansible: true,
+      install_package_docker: false,
+      docker_url: "unix://tmp/docker.sock"
     }
