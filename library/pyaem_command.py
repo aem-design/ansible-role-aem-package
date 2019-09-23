@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import docker
-import urllib
+import json
 
 from ansible.module_utils.basic import *
 
@@ -18,7 +18,7 @@ def main():
         "file_path": {"required": False, "type": "str"},
         "file_url": {"required": False, "type": "str"},
         "file_name": {"required": False, "type": "str"},
-        "file_url_password": {"required": False, "type": "str"},
+        "file_url_password": {"required": False, "type": "str", "no_log": True},
         "file_url_username": {"required": False, "type": "str"},
         "api_command": {"required": True, "type": "str"},
         "docker_url": {"required": False, "type": "str", "default": "unix://var/run/docker.sock"}
@@ -149,11 +149,15 @@ def main():
     for char in client.logs(container=container, stream=True):
         logs = logs + char.decode('utf-8')
 
-    logsresult = dict(
-        failed='failed' in logs,
-        msg=logs,
-        logerror=''
-    )
+    try:
+        logsjson = json.loads(logs)
+    except Exception as err:
+        logsjson = {}
+
+    if 'failed' in logsjson:
+        stepFailed = logsjson['failed']
+    else:
+        stepFailed = False
 
     if params['container_remove']:
         client.remove_container(container=container.get('Id'))
@@ -166,20 +170,16 @@ def main():
         'status': containerstart
     }
 
-    if logsresult['failed']:
+    if stepFailed:
         module.fail_json(
-            failed=True,
-            changed=False,
-            msg=logsresult['msg'],
-            logerror=logsresult['logerror'],
+            failed=stepFailed,
+            msg=logsjson,
             result=result
         )
     else:
         module.exit_json(
-            failed=logsresult['failed'],
-            changed=True,
-            msg=logsresult['msg'],
-            logerror=logsresult['logerror'],
+            failed=stepFailed,
+            msg=logsjson,
             result=result
         )
     return True
