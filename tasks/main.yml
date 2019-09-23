@@ -3,8 +3,8 @@
 - name: "set facts"
   set_fact:
     install_package: false
-    install_package_ansible: false
-    install_package_docker: true
+    install_package_ansible: "{{ install_package_ansible | default(false) }}"
+    install_package_docker: "{{ install_package_docker | default(true) }}"
     package_comment: "[check params]"
     role_comment: "[aem]"
   tags:
@@ -15,11 +15,11 @@
   debug:
     msg:
       - "adobe_cloud_username: {{ adobe_cloud_username | default('<MISSING>') }}"
-      - "adobe_cloud_password: {{ adobe_cloud_password | default('<MISSING>') }}"
+      - "adobe_cloud_password: {% if adobe_cloud_password %}set{% else %}not set{% endif %}"
       - "aem_host: {{ aem_host | default('<MISSING>')  }}"
       - "aem_port: {{ aem_port | default('<MISSING>') }}"
       - "aem_username: {{ aem_username | default('<MISSING>') }}"
-      - "aem_password: {{ aem_password | default('<MISSING>') }}"
+      - "aem_password: {% if aem_password %}set{% else %}not set{% endif %}"
       - "group_name: {{ group_name | default('<MISSING>') }}"
       - "package_name: {{ package_name | default('<MISSING>') }}"
       - "package_version: {{ package_version | default('<MISSING>') }}"
@@ -29,10 +29,10 @@
       - "file_override: {{ file_override | default('<MISSING>') }}"
       - "file_override_package_name: {{ file_override_package_name | default('<MISSING>') }}"
       - "simple_name: {{ simple_name | default('<MISSING>') }}"
-      - "requires_restart: {{ requires_restart | default('<MISSING>') }}"
-      - "requires_admin: {{ requires_admin | default('<MISSING>') }}"
-      - "container_name: {{ container_name }}"
       - "role_comment: {{ role_comment }}"
+      - "install_package: {{ install_package }}"
+      - "install_package_ansible: {{ install_package_ansible }}"
+      - "install_package_docker: {{ install_package_docker }}"
   tags:
     - always
 
@@ -57,21 +57,10 @@
     - package_source is defined
     - file_name is defined
     - simple_name is defined
-    - requires_restart is defined
-    - requires_admin is defined
-    - container_name is defined
   tags:
     - always
 
-- name: install package using ansible {{ package_comment }}{{ role_comment }}
-  set_fact:
-    install_package_ansible: true
-    install_package_docker: false
-  tags:
-    - aem-install-package-using-ansible
-
-
-- name: check if packages state {{ package_comment }}{{ role_comment }}
+- name: check if packages state using ansible {{ package_comment }}{{ role_comment }}
   become: false
   aem_check_package_installed:
     host: "{{ aem_host }}"
@@ -90,7 +79,7 @@
     - aem-install-package-using-ansible
 
 
-- name: check if packages state {{ package_comment }}{{ role_comment }}
+- name: check if packages state using docker {{ package_comment }}{{ role_comment }}
   become: true
   pyaem_command:
     host: "{{ aem_host }}"
@@ -101,6 +90,7 @@
     aem_username: "{{ aem_username }}"
     aem_password: "{{ aem_password }}"
     api_command: "is_package_installed"
+    docker_url: "{{ docker_url | default('unix://var/run/docker.sock') }}"
   register: package_exist
   ignore_errors: true
   when:
@@ -115,39 +105,31 @@
     install_package: false
   when:
     - install_package
-    - not(package_exist.failed)
+    - package_exist is defined
+    - not package_exist.failed
   tags:
     - always
 
 - name: package already installed skipping {{ package_comment }}{{ role_comment }}
   debug:
-    msg: "package already installed"
+    msg:
+      - "package already installed"
+      - "{{ package_exist }}"
+      - "install_package: {{ install_package }}"
+      - "install_package_ansible: {{ install_package_ansible }}"
+      - "install_package_docker: {{ install_package_docker }}"
   when:
-    - not(install_package)
+    - not install_package
   tags:
     - always
 
 - name: installing package {{ package_comment }}{{ role_comment }}
   debug:
-    msg: "package is not installed"
-  when:
-    - install_package
-  tags:
-    - always
-
-- name: create temp dir {{ package_comment }}{{ role_comment }}
-  tempfile:
-    state: directory
-  register: tempfile
-  no_log: "{{ debug_hide }}"
-  when:
-    - install_package
-  tags:
-    - always
-
-- name: use temp dir {{ package_comment }}{{ role_comment }}
-  set_fact:
-    role_files_dir: "{{ tempfile.path }}"
+    msg:
+      - "package is not installed"
+      - "install_package: {{ install_package }}"
+      - "install_package_ansible: {{ install_package_ansible }}"
+      - "install_package_docker: {{ install_package_docker }}"
   when:
     - install_package
   tags:
@@ -155,7 +137,7 @@
 
 - name: check if nexus is available {{ package_comment }}{{ role_comment }}
   uri:
-    url: "http://{{ maven_repository }}"
+    url: "{{ maven_repository_url }}"
     timeout: 3
   register: nexus_ping
   ignore_errors: true
@@ -182,12 +164,31 @@
   tags:
     - always
 
+- name: create temp dir {{ package_comment }}{{ role_comment }}
+  tempfile:
+    state: directory
+  register: tempfile
+  no_log: "{{ debug_hide }}"
+  when:
+    - install_package
+  tags:
+    - always
+
+- name: use temp dir {{ package_comment }}{{ role_comment }}
+  set_fact:
+    role_files_dir: "{{ tempfile.path }}"
+  when:
+    - install_package
+  tags:
+    - always
+
 - name: prep package info {{ package_comment }}{{ role_comment }}
   set_fact:
     local_package_maven_url: "{{ maven_repository_url }}/aemdesign/{{ package_name }}/{{ package_version }}/{{ file_name }}"
     install_package_from_local_maven: false
   when:
     - install_package
+    - nexus_available
   tags:
     - always
 
@@ -249,6 +250,7 @@
   register: download_package
   when:
     - install_package
+    - nexus_available
     - package_source == "adobecloud"
     - not(install_package_from_local_maven)
   tags:
@@ -261,27 +263,27 @@
   register: download_package
   when:
     - install_package
+    - nexus_available
     - package_source != "adobecloud"
     - not(install_package_from_local_maven)
   tags:
     - always
 
-#- name: cache in local maven {{ package_comment }}{{ role_comment }}
-#  include_role:
-#    name: aem_design.nexus_upload_artifact
-#  vars:
-#    nexus_username: "{{ maven_repository_username }}"
-#    nexus_password: "{{ maven_repository_password }}"
-#    fullfilepath: "{{ role_files_dir }}/{{ file_name }}"
-#    nexus_url: "{{ local_package_maven_url }}"
-#  when:
-#    - install_package
-#    - nexus_available
-#    - not(install_package_from_local_maven)
-#  tags:
-#    - always
+- name: upload to maven {{ package_comment }}{{ role_comment }}
+  uri:
+    url: "{{ local_package_maven_url }}"
+    user: "{{ maven_repository_username }}"
+    password: "{{ maven_repository_password }}"
+    method: PUT
+    src: "{{ role_files_dir }}/{{ file_name }}"
+  when:
+    - install_package
+    - nexus_available
+    - not(install_package_from_local_maven)
+  tags:
+    - always
 
-- name: upload package to aem {{ package_comment }}{{ role_comment }}
+- name: upload package to aem using docker {{ package_comment }}{{ role_comment }}
   become: true
   pyaem_command:
     host: "{{ aem_host }}"
@@ -293,6 +295,11 @@
     aem_username: "{{ aem_username }}"
     aem_password: "{{ aem_password }}"
     api_command: "upload_package_sync"
+    docker_url: "{{ docker_url | default('unix://var/run/docker.sock') }}"
+    file_url: "{{ package_url }}"
+    file_name: "{{ file_name }}"
+    file_url_password: "{{ adobe_cloud_password | default('') }}"
+    file_url_username: "{{ adobe_cloud_username | default('') }}"
   register: result
   until: result is success
   retries: 1
@@ -302,7 +309,7 @@
     - install_package_docker
     - file_override is not defined or not(file_override)
 
-- name: upload package to aem {{ package_comment }}{{ role_comment }}
+- name: upload package to aem using ansible {{ package_comment }}{{ role_comment }}
   aem_upload_package:
     host: "{{ aem_host }}"
     port: "{{ aem_port }}"
@@ -323,7 +330,7 @@
   tags:
     - aem-install-package-using-ansible
 
-- name: upload package to aem override filename {{ package_comment }}{{ role_comment }}
+- name: upload package to aem override filename using docker {{ package_comment }}{{ role_comment }}
   become: true
   pyaem_command:
     host: "{{ aem_host }}"
@@ -335,6 +342,7 @@
     aem_username: "{{ aem_username }}"
     aem_password: "{{ aem_password }}"
     api_command: "upload_package_sync"
+    docker_url: "{{ docker_url | default('unix://var/run/docker.sock') }}"
   register: result
   until: result is success
   retries: 180
@@ -344,7 +352,7 @@
     - install_package_docker
     - file_override is defined and file_override
 
-- name: verify package uploaded {{ package_comment }}{{ role_comment }}
+- name: verify package uploaded using docker {{ package_comment }}{{ role_comment }}
   become: true
   pyaem_command:
     host: "{{ aem_host }}"
@@ -355,6 +363,7 @@
     aem_username: "{{ aem_username }}"
     aem_password: "{{ aem_password }}"
     api_command: "is_package_uploaded"
+    docker_url: "{{ docker_url | default('unix://var/run/docker.sock') }}"
   register: result
   until: result is success
   retries: 1
@@ -366,7 +375,7 @@
     - aem-install-package-using-docker
 
 
-- name: verify package uploaded {{ package_comment }}{{ role_comment }}
+- name: verify package uploaded using ansible {{ package_comment }}{{ role_comment }}
   aem_check_package_uploaded:
     host: "{{ aem_host }}"
     port: "{{ aem_port }}"
@@ -386,7 +395,7 @@
     - aem-install-package-using-ansible
 
 
-- name: install package {{ package_comment }}{{ role_comment }}
+- name: install package using docker {{ package_comment }}{{ role_comment }}
   become: true
   pyaem_command:
     host: "{{ aem_host }}"
@@ -397,6 +406,7 @@
     aem_username: "{{ aem_username }}"
     aem_password: "{{ aem_password }}"
     api_command: "install_package_sync"
+    docker_url: "{{ docker_url | default('unix://var/run/docker.sock') }}"
   register: result
   until: result is success
   retries: 180
@@ -406,7 +416,7 @@
     - install_package_docker
 
 
-- name: install package {{ package_comment }}{{ role_comment }}
+- name: install package using ansible {{ package_comment }}{{ role_comment }}
   aem_install_package:
     host: "{{ aem_host }}"
     port: "{{ aem_port }}"
@@ -434,7 +444,7 @@
   tags:
     - always
 
-- name: ensure packages installed {{ package_comment }}{{ role_comment }}
+- name: ensure packages installed using docker {{ package_comment }}{{ role_comment }}
   become: true
   pyaem_command:
     host: "{{ aem_host }}"
@@ -445,6 +455,7 @@
     aem_username: "{{ aem_username }}"
     aem_password: "{{ aem_password }}"
     api_command: "is_package_installed"
+    docker_url: "{{ docker_url | default('unix://var/run/docker.sock') }}"
   register: result
   until: result is success
   retries: 180
@@ -453,7 +464,7 @@
     - install_package
     - install_package_docker
 
-- name: ensure packages installed {{ package_comment }}{{ role_comment }}
+- name: ensure packages installed using ansible {{ package_comment }}{{ role_comment }}
   become: false
   aem_check_package_installed:
     host: "{{ aem_host }}"
@@ -473,23 +484,6 @@
   tags:
     - aem-install-package-using-ansible
 
-- name: restart container {{ package_comment }}{{ role_comment }}
-  docker_container:
-    name: "{{ container_name }}"
-    state: restarted
-  when:
-    - install_package
-    - requires_restart
-
-- name: ensure instance is ready {{ package_comment }}{{ role_comment }}
-  include_role:
-    name: aem_design.aem_verify
-  when:
-    - install_package
-    - requires_restart
-  tags:
-    - always
-
 - name: removing temp directory {{ role_comment | default('') }}
   file:
     name: "{{ tempfile.path }}"
@@ -497,5 +491,6 @@
   become: true
   become_method: sudo
   when:
+    - install_package
     - tempfile is defined
     - tempfile.path is defined
