@@ -3,10 +3,6 @@
   hosts: instance
   gather_facts: false
   tasks:
-    - name: Install role dependencies
-      raw: pip install docker
-      become: true
-      changed_when: false
     - name: create docker.sock
       raw: touch /var/run/docker.sock
       become: true
