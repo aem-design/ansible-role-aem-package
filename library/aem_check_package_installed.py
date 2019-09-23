@@ -7,13 +7,13 @@ import pyaem2
 
 def main():
     fields = {
-        "host": {"default": True, "type": "str"},
-        "port": {"default": True, "type": "str"},
-        "group_name": {"default": True, "type": "str"},
-        "package_name": {"default": True, "type": "str"},
-        "package_version": {"default": True, "type": "str"},
-        "aem_username": {"default": True, "type": "str"},
-        "aem_password": {"default": True, "type": "str", "no_log": True}
+        "host": {"required": True, "type": "str"},
+        "port": {"required": True, "type": "str"},
+        "group_name": {"required": True, "type": "str"},
+        "package_name": {"required": True, "type": "str"},
+        "package_version": {"required": True, "type": "str"},
+        "aem_username": {"required": True, "type": "str"},
+        "aem_password": {"required": True, "type": "str", "no_log": True}
     }
 
     module = AnsibleModule(argument_spec=fields)
@@ -27,14 +27,28 @@ def main():
     aem_username = module.params['aem_username']
     aem_password = module.params['aem_password']
 
-    aem = pyaem2.PyAem2(aem_username, aem_password, host, port)
-    result = aem.is_package_installed(group_name, package_name, package_version)
+    try:
+        aem = pyaem2.PyAem2(aem_username, aem_password, host, port)
+        result = aem.is_package_installed(group_name, package_name, package_version)
 
-    module.exit_json(
-        changed=True,
-        meta=result.message,
-        installed='is not installed' not in result.message
-    )
+        module.exit_json(
+            failed=False,
+            changed=True,
+            msg=result.message,
+            installed='is not installed' not in result.message
+        )
+
+    except pyaem2.PyAem2Exception as err:
+        module.fail_json(
+            failed=True,
+            changed=False,
+            host=host,
+            port=port,
+            username=aem_username,
+            password=aem_password,
+            msg=str(err),
+            installed=False
+        )
 
 
 if __name__ == '__main__':

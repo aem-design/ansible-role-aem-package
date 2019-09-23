@@ -7,14 +7,14 @@ import pyaem2
 
 def main():
     fields = {
-        "host": {"default": True, "type": "str"},
-        "port": {"default": True, "type": "str"},
-        "group_name": {"default": True, "type": "str"},
-        "package_name": {"default": True, "type": "str"},
-        "package_version": {"default": True, "type": "str"},
-        "aem_username": {"default": True, "type": "str"},
-        "aem_password": {"default": True, "type": "str", "no_log": True},
-        "file_path": {"default": True, "type": "str"}
+        "host": {"required": True, "type": "str"},
+        "port": {"required": True, "type": "str"},
+        "group_name": {"required": True, "type": "str"},
+        "package_name": {"required": True, "type": "str"},
+        "package_version": {"required": True, "type": "str"},
+        "aem_username": {"required": True, "type": "str"},
+        "aem_password": {"required": True, "type": "str", "no_log": True},
+        "file_path": {"required": True, "type": "str"}
     }
 
     module = AnsibleModule(argument_spec=fields)
@@ -29,11 +29,23 @@ def main():
     aem_username = module.params['aem_username']
     aem_password = module.params['aem_password']
 
-    aem = pyaem2.PyAem2(aem_username, aem_password, host, port)
-    result = aem.upload_package_sync(group_name, package_name, package_version, file_path, force='true')
+    try:
+        aem = pyaem2.PyAem2(aem_username, aem_password, host, port)
+        result = aem.upload_package_sync(group_name, package_name, package_version, file_path, force='true')
 
-    module.exit_json(changed=True, meta=result.message)
+        module.exit_json(
+            failed=False,
+            changed=True,
+            msg=result.message
+        )
 
+    except pyaem2.PyAem2Exception as err:
+        module.fail_json(
+            failed=True,
+            changed=False,
+            username=aem_username,
+            msg=str(err)
+        )
 
 if __name__ == '__main__':
     main()
