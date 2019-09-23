@@ -16,25 +16,30 @@ Available variables are listed below, along with default values (see `defaults/m
 
 | Name                       	| Required 	| Default   	| Notes                                                   	|
 |----------------------------	|----------	|-----------	|---------------------------------------------------------	|
-| adobe_cloud_username       	| yes      	|           	| will be used to login to adobe cloud                    	|
-| adobe_cloud_password      	| yes      	|           	| will be used to login to adobe cloud                    	|
 | aem_host                   	| yes      	| localhost 	|                                                         	|
 | aem_port                   	| yes      	| 4502      	|                                                         	|
 | aem_username               	| yes      	| admin     	|                                                         	|
 | aem_password               	| yes      	| admin     	|                                                         	|
-| maven_repository           	| yes      	| localhost    	| will be used to get and store packages if available     	|
-| container_name: "author"      | yes      	| "author"      | used to restart container if installed package requires restart|
+|                           	|          	|           	|                                                       	|
+| maven_repository_url          | yes      	| http://localhost | will be used to get and store packages if available     	|
+| maven_repository_username     |           | admin         | nexus user to use for upload of downloaded files          |
+| maven_repository_password     |           | admin123      | nexus password to use for upload of downloaded files      |
+|                           	|          	|           	|                                                       	|
+| simple_name                	| yes      	|           	| simple name for package                                 	|
 | group_name                 	| yes      	|           	| group of package                                        	|
 | package_name               	| yes      	|           	| package name                                            	|
 | package_version            	| yes      	|           	| package name                                            	|
-| package_source             	| yes      	|           	| source type used to determine how to handle package url 	|
 | package_url                	| yes      	|           	| package url                                             	|
 | file_name                  	| yes      	|           	| download filename                                       	|
 | file_override              	| yes      	|           	| override package name that has been downloaded          	|
 | file_override_package_name 	| yes      	|           	| package name to override                                	|
-| simple_name                	| yes      	|           	| simple name for package                                 	|
-| requires_restart           	| yes      	|           	| package restart required                                	|
-| requires_admin             	| yes      	|           	| package required admin                                  	|
+| file_url_username            	| yes      	|           	| will be used when downloading file                    	|
+| file_url_password           	| yes      	|           	| will be used when downloading file                    	|
+|                           	|          	|           	|                                                       	|
+| install_package_ansible       |           | false         | install package using ansible script, you will need pyaem2 installed |
+| install_package_docker        |           | true          | install package using docker container, you will need to pass docker_url |
+| docker_url                    |           | unix://var/run/docker.sock | host where to run the docker container for executing pyaem2 commands |
+|                           	|          	|           	|                                                       	|
 
 ## Dependencies
 
@@ -50,23 +55,21 @@ This role depends on roles:
   include_role:
     name: aem-package
   vars:
-    adobe_cloud_username: "{{ adobe_cloud_username }}"
-    adobe_cloud_password: "{{ adobe_cloud_password }}"
     aem_host: "{{ aem_host }}"
     aem_port: "{{ aem_port }}"
     aem_username: "{{ aem_username }}"
     aem_password: "{{ aem_password }}"
+    simple_name: "{{ item.simple_name }}"
     group_name: "{{ item.group_name }}"
     package_name: "{{ item.package_name }}"
     package_version: "{{ item.version }}"
-    package_source: "{{ item.package_source }}"
     package_url: "{{ item.package_url }}"
     file_name: "{{ item.file_name }}"
     file_override: "{{ item.file_override | default(false) }}"
     file_override_package_name: "{{ item.file_override_package_name | default('') }}"
-    simple_name: "{{ item.simple_name }}"
-    requires_restart: "{{ item.requires_restart }}"
-    requires_admin: "{{ item.requires_admin }}"
+    file_url_username: "{{ adobe_cloud_username }}"
+    file_url_password: "{{ adobe_cloud_password }}"
+    install_package_ansible: "true"
   with_items: "{{ package_files }}"
   when:
     - package_files is defined
@@ -81,14 +84,11 @@ package_files:
   ## SERVICE PACKS
 
   - {
-    package_source: "adobecloud",
     simple_name: "adobe servicepack 1",
     file_name: 'aem-service-pkg-6.5.1.zip',
     version: '6.5.1',
     group_name: 'adobe/cq650/servicepack',
     package_name: 'aem-service-pkg',
-    requires_restart: false,
-    requires_admin: true,
     package_url: "https://www.adobeaemcloud.com/content/companies/public/adobe/packages/cq650/servicepack/AEM-6.5.1.0/jcr%3acontent/package/file.res/AEM-6.5.1.0-6.5.1.zip"
   }
 
