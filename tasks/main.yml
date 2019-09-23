@@ -14,8 +14,8 @@
   no_log: "{{ debug_hide }}"
   debug:
     msg:
-      - "adobe_cloud_username: {{ adobe_cloud_username | default('<MISSING>') }}"
-      - "adobe_cloud_password: {% if adobe_cloud_password %}set{% else %}not set{% endif %}"
+      - "file_url_username: {{ file_url_username | default('<MISSING>') }}"
+      - "file_url_password: {% if file_url_password %}set{% else %}not set{% endif %}"
       - "aem_host: {{ aem_host | default('<MISSING>')  }}"
       - "aem_port: {{ aem_port | default('<MISSING>') }}"
       - "aem_username: {{ aem_username | default('<MISSING>') }}"
@@ -23,7 +23,6 @@
       - "group_name: {{ group_name | default('<MISSING>') }}"
       - "package_name: {{ package_name | default('<MISSING>') }}"
       - "package_version: {{ package_version | default('<MISSING>') }}"
-      - "package_source: {{ package_source | default('<MISSING>') }}"
       - "package_url: {{ package_url | default('<MISSING>') }}"
       - "file_name: {{ file_name | default('<MISSING>') }}"
       - "file_override: {{ file_override | default('<MISSING>') }}"
@@ -44,8 +43,6 @@
     nexus_available: false
     package_comment: "[{{ simple_name }}]"
   when:
-    - adobe_cloud_username is defined
-    - adobe_cloud_password is defined
     - aem_host is defined
     - aem_port is defined
     - aem_username is defined
@@ -54,7 +51,6 @@
     - package_name is defined
     - package_version is defined
     - package_url is defined
-    - package_source is defined
     - file_name is defined
     - simple_name is defined
   tags:
@@ -106,7 +102,8 @@
   when:
     - install_package
     - package_exist is defined
-    - not package_exist.failed
+    - package_exist.failed is defined
+    - not(package_exist.failed)
   tags:
     - always
 
@@ -149,6 +146,7 @@
 - name: nexus is not available {{ package_comment }}{{ role_comment }}
   set_fact:
     nexus_available: false
+    install_package_from_local_maven: false
   when:
     - install_package
     - nexus_ping.status != 200
@@ -158,6 +156,7 @@
 - name: nexus registry is available {{ package_comment }}{{ role_comment }}
   set_fact:
     nexus_available: true
+    local_package_maven_url: "{{ maven_repository_url }}/aemdesign/{{ package_name }}/{{ package_version }}/{{ file_name }}"
   when:
     - install_package
     - nexus_ping.status == 200
@@ -179,16 +178,6 @@
     role_files_dir: "{{ tempfile.path }}"
   when:
     - install_package
-  tags:
-    - always
-
-- name: prep package info {{ package_comment }}{{ role_comment }}
-  set_fact:
-    local_package_maven_url: "{{ maven_repository_url }}/aemdesign/{{ package_name }}/{{ package_version }}/{{ file_name }}"
-    install_package_from_local_maven: false
-  when:
-    - install_package
-    - nexus_available
   tags:
     - always
 
@@ -240,32 +229,17 @@
   tags:
     - always
 
-- name: download from adobe cloud {{ package_comment }}{{ role_comment }}
-  become: false
+- name: download file {{ package_comment }}{{ role_comment }}
   get_url:
     url: "{{ package_url }}"
     dest: "{{ role_files_dir }}/{{ file_name }}"
-    url_password: "{{ adobe_cloud_password }}"
-    url_username: "{{ adobe_cloud_username }}"
+    url_username: "{{ file_url_username }}"
+    url_password: "{{ file_url_password }}"
   register: download_package
   when:
     - install_package
-    - nexus_available
-    - package_source == "adobecloud"
-    - not(install_package_from_local_maven)
-  tags:
-    - always
-
-- name: download directly {{ package_comment }}{{ role_comment }}
-  get_url:
-    url: "{{ package_url }}"
-    dest: "{{ role_files_dir }}/{{ file_name }}"
-  register: download_package
-  when:
-    - install_package
-    - nexus_available
-    - package_source != "adobecloud"
-    - not(install_package_from_local_maven)
+    - install_package_ansible
+    - not install_package_from_local_maven
   tags:
     - always
 
@@ -279,7 +253,7 @@
   when:
     - install_package
     - nexus_available
-    - not(install_package_from_local_maven)
+    - not install_package_from_local_maven
   tags:
     - always
 
@@ -298,8 +272,8 @@
     docker_url: "{{ docker_url | default('unix://var/run/docker.sock') }}"
     file_url: "{{ package_url }}"
     file_name: "{{ file_name }}"
-    file_url_password: "{{ adobe_cloud_password | default('') }}"
-    file_url_username: "{{ adobe_cloud_username | default('') }}"
+    file_url_password: "{{ file_url_password }}"
+    file_url_username: "{{ file_url_username }}"
   register: result
   until: result is success
   retries: 1
