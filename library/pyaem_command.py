@@ -170,18 +170,12 @@ def main():
         'status': containerstart
     }
 
-    if stepFailed:
-        module.fail_json(
-            failed=stepFailed,
-            msg=logsjson,
-            result=result
-        )
-    else:
-        module.exit_json(
-            failed=stepFailed,
-            msg=logsjson,
-            result=result
-        )
+    module.exit_json(
+        failed=stepFailed,
+        dd=stepFailed,
+        msg=logsjson,
+        result=result
+    )
     return True
 
 
