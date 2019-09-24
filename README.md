@@ -16,12 +16,12 @@ Available variables are listed below, along with default values (see `defaults/m
 
 | Name                       	| Required 	| Default   	| Notes                                                   	|
 |----------------------------	|----------	|-----------	|---------------------------------------------------------	|
-| aem_host                   	| yes      	| localhost 	|                                                         	|
-| aem_port                   	| yes      	| 4502      	|                                                         	|
-| aem_username               	| yes      	| admin     	|                                                         	|
-| aem_password               	| yes      	| admin     	|                                                         	|
+| aem_host                   	| yes      	| localhost 	| aem host to use                                           |
+| aem_port                   	| yes      	| 4502      	| aem host port to use                                      |
+| aem_username               	| yes      	| admin     	| user name to use for aem host                             |
+| aem_password               	| yes      	| admin     	| password to use for aem host                              |
 |                           	|          	|           	|                                                       	|
-| maven_repository_url          | yes      	| http://localhost | will be used to get and store packages if available     	|
+| maven_repository_url          | yes      	| http://localhost | will be used to get and store packages if available    |
 | maven_repository_username     |           | admin         | nexus user to use for upload of downloaded files          |
 | maven_repository_password     |           | admin123      | nexus password to use for upload of downloaded files      |
 |                           	|          	|           	|                                                       	|
