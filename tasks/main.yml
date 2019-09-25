@@ -14,7 +14,7 @@
   no_log: "{{ debug_hide }}"
   debug:
     msg:
-      - "file_url_username: {{ file_url_username | default('<MISSING>') }}"
+      - "file_url_username: {% if file_url_username %}set{% else %}not set{% endif %}"
       - "file_url_password: {% if file_url_password %}set{% else %}not set{% endif %}"
       - "aem_host: {{ aem_host | default('<MISSING>')  }}"
       - "aem_port: {{ aem_port | default('<MISSING>') }}"
@@ -140,6 +140,7 @@
   ignore_errors: true
   when:
     - install_package
+    - maven_repository_url | length > 0
   tags:
     - always
 
@@ -149,6 +150,7 @@
     install_package_from_local_maven: false
   when:
     - install_package
+    - maven_repository_url | length > 0
     - nexus_ping.status != 200
   tags:
     - always
@@ -159,6 +161,7 @@
     local_package_maven_url: "{{ maven_repository_url }}/aemdesign/{{ package_name }}/{{ package_version }}/{{ file_name }}"
   when:
     - install_package
+    - maven_repository_url | length > 0
     - nexus_ping.status == 200
   tags:
     - always
@@ -272,8 +275,8 @@
     docker_url: "{{ docker_url | default('unix://var/run/docker.sock') }}"
     file_url: "{{ package_url }}"
     file_name: "{{ file_name }}"
-    file_url_password: "{{ file_url_password }}"
-    file_url_username: "{{ file_url_username }}"
+    file_url_password: "{{ file_url_password | default('') }}"
+    file_url_username: "{{ file_url_username | default('') }}"
   register: result
   until: result is success
   retries: 1
