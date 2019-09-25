@@ -21,7 +21,7 @@ Available variables are listed below, along with default values (see `defaults/m
 | aem_username               	| yes      	| admin     	| user name to use for aem host                             |
 | aem_password               	| yes      	| admin     	| password to use for aem host                              |
 |                           	|          	|           	|                                                       	|
-| maven_repository_url          | yes      	| http://localhost | will be used to get and store packages if available    |
+| maven_repository_url          |       	| http://localhost | will be used to get and store packages if available    |
 | maven_repository_username     |           | admin         | nexus user to use for upload of downloaded files          |
 | maven_repository_password     |           | admin123      | nexus password to use for upload of downloaded files      |
 |                           	|          	|           	|                                                       	|
@@ -33,8 +33,8 @@ Available variables are listed below, along with default values (see `defaults/m
 | file_name                  	| yes      	|           	| download filename                                       	|
 | file_override              	| yes      	|           	| override package name that has been downloaded          	|
 | file_override_package_name 	| yes      	|           	| package name to override                                	|
-| file_url_username            	| yes      	|           	| will be used when downloading file                    	|
-| file_url_password           	| yes      	|           	| will be used when downloading file                    	|
+| file_url_username            	|       	|           	| will be used when downloading file                    	|
+| file_url_password           	|       	|           	| will be used when downloading file                    	|
 |                           	|          	|           	|                                                       	|
 | install_package_ansible       |           | false         | install package using ansible script, you will need pyaem2 installed |
 | install_package_docker        |           | true          | install package using docker container, you will need to pass docker_url |
