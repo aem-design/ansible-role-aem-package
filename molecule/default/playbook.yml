@@ -157,8 +157,8 @@
       include_role:
         name: "{{ role_name }}"
       vars:
-        aem_port: "5502",
-        aem_host: "{{ dockerhost_ip.stdout }}",
+        aem_port: "5502"
+        aem_host: "{{ dockerhost_ip.stdout }}"
         maven_repository_url: "{{ item.maven_repository_url | default('') }}"
         debug_hide: "{{ item.debug_hide }}"
         simple_name: "{{ item.simple_name }}"

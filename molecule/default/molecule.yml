@@ -53,9 +53,9 @@ scenario:
     - destroy
     - syntax
     - create
-#    - prepare
+    # - prepare
     - converge
-#    - idempotence
+    # - idempotence
     - side_effect
     - verify
     - cleanup
