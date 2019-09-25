@@ -37,8 +37,8 @@ Available variables are listed below, along with default values (see `defaults/m
 | file_url_password           	|       	|           	| will be used when downloading file                    	|
 |                           	|          	|           	|                                                       	|
 | install_package_ansible       |           | false         | install package using ansible script, you will need pyaem2 installed |
-| install_package_docker        |           | true          | install package using docker container, you will need to pass docker_url |
-| docker_url                    |           | unix://var/run/docker.sock | host where to run the docker container for executing pyaem2 commands |
+| install_package_docker        |           | true          | install package using docker container, you will need to pass docker_host |
+| docker_host                    |           | unix://var/run/docker.sock | host where to run the docker container for executing pyaem2 commands |
 |                           	|          	|           	|                                                       	|
 
 ## Dependencies

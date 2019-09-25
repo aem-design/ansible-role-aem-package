@@ -86,7 +86,7 @@
     aem_username: "{{ aem_username }}"
     aem_password: "{{ aem_password }}"
     api_command: "is_package_installed"
-    docker_url: "{{ docker_url | default('unix://var/run/docker.sock') }}"
+    docker_host: "{{ docker_host | default('unix://var/run/docker.sock') }}"
   register: package_exist
   ignore_errors: true
   when:
@@ -272,7 +272,7 @@
     aem_username: "{{ aem_username }}"
     aem_password: "{{ aem_password }}"
     api_command: "upload_package_sync"
-    docker_url: "{{ docker_url | default('unix://var/run/docker.sock') }}"
+    docker_host: "{{ docker_host | default('unix://var/run/docker.sock') }}"
     file_url: "{{ package_url }}"
     file_name: "{{ file_name }}"
     file_url_password: "{{ file_url_password | default('') }}"
@@ -319,7 +319,7 @@
     aem_username: "{{ aem_username }}"
     aem_password: "{{ aem_password }}"
     api_command: "upload_package_sync"
-    docker_url: "{{ docker_url | default('unix://var/run/docker.sock') }}"
+    docker_host: "{{ docker_host | default('unix://var/run/docker.sock') }}"
   register: result
   until: result is success
   retries: 180
@@ -340,7 +340,7 @@
     aem_username: "{{ aem_username }}"
     aem_password: "{{ aem_password }}"
     api_command: "is_package_uploaded"
-    docker_url: "{{ docker_url | default('unix://var/run/docker.sock') }}"
+    docker_host: "{{ docker_host | default('unix://var/run/docker.sock') }}"
   register: result
   until: result is success
   retries: 1
@@ -383,7 +383,7 @@
     aem_username: "{{ aem_username }}"
     aem_password: "{{ aem_password }}"
     api_command: "install_package_sync"
-    docker_url: "{{ docker_url | default('unix://var/run/docker.sock') }}"
+    docker_host: "{{ docker_host | default('unix://var/run/docker.sock') }}"
   register: result
   until: result is success
   retries: 180
@@ -432,7 +432,7 @@
     aem_username: "{{ aem_username }}"
     aem_password: "{{ aem_password }}"
     api_command: "is_package_installed"
-    docker_url: "{{ docker_url | default('unix://var/run/docker.sock') }}"
+    docker_host: "{{ docker_host | default('unix://var/run/docker.sock') }}"
   register: result
   until: result is success
   retries: 180

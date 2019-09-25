@@ -21,7 +21,7 @@ def main():
         "file_url_password": {"required": False, "type": "str", "no_log": True},
         "file_url_username": {"required": False, "type": "str"},
         "api_command": {"required": True, "type": "str"},
-        "docker_url": {"required": False, "type": "str", "default": "unix://var/run/docker.sock"}
+        "docker_host": {"required": False, "type": "str", "default": "unix://var/run/docker.sock"}
     }
 
     module = AnsibleModule(argument_spec=fields)
@@ -42,7 +42,7 @@ def main():
         aem_username=module.params['aem_username'],
         aem_password=module.params['aem_password'],
         api_command=module.params['api_command'],
-        docker_url=module.params['docker_url'],
+        docker_host=module.params['docker_host'],
 
         container_image='aemdesign/ansible-playbook:centos7',
         container_image_volume='/ansible/playbooks',
@@ -54,7 +54,7 @@ def main():
             '/tmp' if module.params['file_path'] is None else module.params['file_path'])
     )
 
-    client = docker.APIClient(base_url=params["docker_url"])
+    client = docker.APIClient(base_url=params["docker_host"])
 
     hostconfig = client.create_host_config()
 
