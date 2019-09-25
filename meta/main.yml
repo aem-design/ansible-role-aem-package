@@ -29,5 +29,4 @@ galaxy_info:
     - packages
 
 dependencies:
-  - aem_design.aem_license
   - aem_design.aem_verify
