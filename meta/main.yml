@@ -27,6 +27,3 @@ galaxy_info:
     - web
     - aemdesign
     - packages
-
-dependencies:
-  - aem_design.aem_verify
