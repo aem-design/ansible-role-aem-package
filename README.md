@@ -53,7 +53,7 @@ This role depends on roles:
 ```yaml
 - hosts: all
   include_role:
-    name: aem-package
+    name: aem_package
   vars:
     aem_host: "{{ aem_host }}"
     aem_port: "{{ aem_port }}"
