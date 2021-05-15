@@ -1,26 +1,12 @@
 ---
 - name: Converge
   hosts: instance
+  gather_facts: true
   become: true
   vars:
     local_role_name: "ansible-role-aem-package"
     role_name: "{% if lookup('env','ROLE_NAME_FULL') %}{{ lookup('env','ROLE_NAME_FULL') }}{% else %}{{ local_role_name }}{% endif %}"
     package_files: [
-      {
-        debug_hide: "false",
-        simple_name: "vanityurls using docker",
-        group_name: "Adobe",
-        package_version: "1.0.2",
-        package_name: "vanityurls-components",
-        package_url: "https://www.adobeaemcloud.com/content/companies/public/adobe/packages/\
-                      cq600/component/vanityurls-components/jcr%3acontent/package/file.res/vanityurls-components-1.0.2.zip",
-        file_name: "vanityurls-components-1.0.2.zip",
-        file_url_username: "{{ service_adobe_cloud_username }}",
-        file_url_password: "{{ service_adobe_cloud_password }}",
-        install_package_ansible: false,
-        install_package_docker: true,
-        docker_host: "unix://tmp/docker.sock"
-      },
       {
         debug_hide: "false",
         simple_name: "acs twitter using docker",
@@ -66,25 +52,6 @@
       role: "{{ role_name }}",
       aem_port: "5502",
       aem_host: "{{ dockerhost_ip.stdout }}",
-      maven_repository_url: "http://{{ dockerhost_ip.stdout }}",
-      debug_hide: "false",
-      simple_name: "vanityurls using docker",
-      group_name: "Adobe",
-      package_version: "1.0.2",
-      package_name: "vanityurls-components",
-      package_url: "https://www.adobeaemcloud.com/content/companies/public/adobe/packages/\
-      cq600/component/vanityurls-components/jcr%3acontent/package/file.res/vanityurls-components-1.0.2.zip",
-      file_name: "vanityurls-components-1.0.2.zip",
-      file_url_username: "{{ service_adobe_cloud_username }}",
-      file_url_password: "{{ service_adobe_cloud_password }}",
-      install_package_ansible: false,
-      install_package_docker: true,
-      docker_host: "unix://tmp/docker.sock"
-    }
-    - {
-      role: "{{ role_name }}",
-      aem_port: "5502",
-      aem_host: "{{ dockerhost_ip.stdout }}",
       debug_hide: "false",
       simple_name: "acs twitter using docker",
       group_name: "day_internal/consulting",
@@ -111,44 +78,6 @@
       file_name: "aemdesign-aem-core-deploy-2.0.521.zip",
       install_package_ansible: true,
       install_package_docker: false,
-      docker_host: "unix://tmp/docker.sock"
-    }
-    - {
-      role: "{{ role_name }}",
-      aem_port: "5502",
-      aem_host: "{{ dockerhost_ip.stdout }}",
-      maven_repository_url: "http://{{ dockerhost_ip.stdout }}",
-      file_url_username: "{{ service_adobe_cloud_username }}",
-      file_url_password: "{{ service_adobe_cloud_password }}",
-      debug_hide: "false",
-      simple_name: "vanityurls existing using ansible",
-      group_name: "Adobe",
-      package_version: "1.0.2",
-      package_name: "vanityurls-components",
-      package_url: "https://www.adobeaemcloud.com/content/companies/public/adobe/packages/\
-      cq600/component/vanityurls-components/jcr%3acontent/package/file.res/vanityurls-components-1.0.2.zip",
-      file_name: "vanityurls-components-1.0.2.zip",
-      install_package_ansible: true,
-      install_package_docker: false,
-      docker_host: "unix://tmp/docker.sock"
-    }
-    - {
-      role: "{{ role_name }}",
-      aem_port: "5502",
-      aem_host: "{{ dockerhost_ip.stdout }}",
-      maven_repository_url: "http://{{ dockerhost_ip.stdout }}",
-      file_url_username: "{{ service_adobe_cloud_username }}",
-      file_url_password: "{{ service_adobe_cloud_password }}",
-      debug_hide: "false",
-      simple_name: "vanityurls existing using docker",
-      group_name: "Adobe",
-      package_version: "1.0.2",
-      package_name: "vanityurls-components",
-      package_url: "https://www.adobeaemcloud.com/content/companies/public/adobe/packages/\
-      cq600/component/vanityurls-components/jcr%3acontent/package/file.res/vanityurls-components-1.0.2.zip",
-      file_name: "vanityurls-components-1.0.2.zip",
-      install_package_ansible: false,
-      install_package_docker: true,
       docker_host: "unix://tmp/docker.sock"
     }
 

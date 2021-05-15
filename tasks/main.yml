@@ -5,6 +5,7 @@
     install_package: false
     install_package_ansible: "{{ install_package_ansible | default(false) }}"
     install_package_docker: "{{ install_package_docker | default(true) }}"
+    install_package_from_local_maven: false
     package_comment: "[check params]"
     role_comment: "[aem]"
   tags:
@@ -32,6 +33,7 @@
       - "install_package: {{ install_package }}"
       - "install_package_ansible: {{ install_package_ansible }}"
       - "install_package_docker: {{ install_package_docker }}"
+      - "install_package_from_local_maven: {{ install_package_from_local_maven }}"
   tags:
     - always
 

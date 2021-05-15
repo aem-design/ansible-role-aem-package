@@ -3,16 +3,17 @@ dependency:
   name: galaxy
 driver:
   name: docker
-lint:
-  name: yamllint
-  options:
-    config-file: molecule/default/yaml-lint.yml
+lint: |
+  set -e
+  yamllint .
+  ansible-lint
+  flake8
 provisioner:
   name: ansible
-  lint:
-    name: ansible-lint
+  log: true
+  options:
+    vvv: true
   playbooks:
-    prepare: prepare.yml
     converge: ${MOLECULE_PLAYBOOK:-playbook.yml}
   inventory:
     group_vars:
@@ -24,7 +25,7 @@ provisioner:
         role_name: "${ROLE_NAME_FULL}"
 platforms:
   - name: instance
-    image: "aemdesign/ansible-playbook:${MOLECULE_DISTRO:-centos7}"
+    image: "aemdesign/ansible-playbook:centos7"
     command: ${MOLECULE_DOCKER_COMMAND:-"/usr/lib/systemd/systemd"}
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
@@ -62,5 +63,3 @@ scenario:
     - destroy
 verifier:
   name: testinfra
-  lint:
-    name: flake8
