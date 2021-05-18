@@ -1,6 +1,6 @@
 # Ansible Role: AEM Package
 
-[![Build Status](https://travis-ci.org/aem-design/ansible-role-aem-package.svg?branch=master)](https://travis-ci.org/aem-design/ansible-role-aem-package)
+[![build](https://github.com/aem-design/ansible-role-aem-package/actions/workflows/build.yml/badge.svg)](https://github.com/aem-design/ansible-role-aem-package/actions/workflows/build.yml)
 
 Install Content Packages to AEM Instance.
 > This role was developed as part of
