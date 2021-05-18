@@ -60,11 +60,11 @@ jobs:
         run: |
           pip3 install --upgrade pip
           pip3 install --ignore-installed PyYAML
-          pip3 install testinfra molecule docker molecule-docker yamllint flake8 ansible
+          pip3 install -r requirements.txt
 
       - name: Run tests
         run: |
-          molecule --debug test
+          molecule test
 
       - name: Push role to Ansible Galaxy
         uses: robertdebock/galaxy-action@1.1.0

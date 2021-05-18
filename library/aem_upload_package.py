@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from ansible.module_utils.basic import *
+from ansible.module_utils.basic import AnsibleModule
 
 import pyaem2
 
@@ -46,6 +46,7 @@ def main():
             username=aem_username,
             msg=str(err)
         )
+
 
 if __name__ == '__main__':
     main()

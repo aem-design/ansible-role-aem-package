@@ -1,6 +1,7 @@
 ---
 galaxy_info:
   role_name: aem_package
+  namespace: aem_design
   author: Max Barrass
   description: Install Content Packages to AEM Instance.
   company: aem.design

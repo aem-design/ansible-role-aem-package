@@ -5,9 +5,14 @@ driver:
   name: docker
 lint: |
   set -e
+  echo "RUNNING: yamllint..."
   yamllint .
-  ansible-lint
-  flake8
+  echo "RUNNING: ansible-lint..."
+  ansible-lint .
+  echo "RUNNING: autopep8..."
+  autopep8 -i -r ./library/*.py .
+  echo "RUNNING: flake8..."
+  flake8 .
 provisioner:
   name: ansible
   log: true

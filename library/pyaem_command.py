@@ -3,7 +3,7 @@
 import docker
 import json
 
-from ansible.module_utils.basic import *
+from ansible.module_utils.basic import AnsibleModule
 
 
 def main():
@@ -50,6 +50,7 @@ def main():
         container_user='root',
         container_remove=True,
         container_privileged=True,
+        # mount package path into the container.
         container_volume="%s:/ansible/playbooks" % (
             '/tmp' if module.params['file_path'] is None else module.params['file_path'])
     )
@@ -151,7 +152,7 @@ def main():
 
     try:
         logsjson = json.loads(logs)
-    except Exception as err:
+    except Exception as err:  # noqa: F841
         logsjson = {}
 
     if 'failed' in logsjson:

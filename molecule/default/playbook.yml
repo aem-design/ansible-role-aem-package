@@ -16,10 +16,24 @@
         package_url: "https://github.com/Adobe-Consulting-Services/com.adobe.acs.bundles.twitter4j/\
                     releases/download/com.adobe.acs.bundles.twitter4j-1.0.0/com.adobe.acs.bundles.twitter4j-content-1.0.0.zip",
         file_name: "com.adobe.acs.bundles.twitter4j-content-1.0.0.zip",
+        install_package_ansible: true,
+        install_package_docker: false,
+        docker_host: "unix://tmp/docker.sock"
+      },
+      {
+        debug_hide: "false",
+        simple_name: "aemdesign-aem-core using ansible",
+        group_name: "design.aem",
+        package_version: "2.0.521",
+        package_name: "aemdesign-aem-core-deploy",
+        package_url: "https://github.com/aem-design/aemdesign-aem-core/releases/download/2.0.521/\
+                    aemdesign-aem-core-deploy-2.0.521.zip",
+        file_name: "aemdesign-aem-core-deploy-2.0.521.zip",
         install_package_ansible: false,
         install_package_docker: true,
         docker_host: "unix://tmp/docker.sock"
       }
+
     ]
 
   pre_tasks:
@@ -34,52 +48,18 @@
       changed_when: false
 
   roles:
-    - {
-      role: "aem_design.aem_license",
-      aem_license_key: "{{ service_aem_license_key }}",
-      aem_license_name: "{{ service_aem_license_name }}",
-      aem_port: "5502",
-      aem_host: "{{ dockerhost_ip.stdout }}",
-      debug_hide: false
-    }
-    - {
-      role: "aem_design.aem_verify",
-      aem_port: "5502",
-      aem_host: "{{ dockerhost_ip.stdout }}",
-      debug_hide: false
-    }
-    - {
-      role: "{{ role_name }}",
-      aem_port: "5502",
-      aem_host: "{{ dockerhost_ip.stdout }}",
-      debug_hide: "false",
-      simple_name: "acs twitter using docker",
-      group_name: "day_internal/consulting",
-      package_version: "1.0.0",
-      package_name: "com.adobe.acs.bundles.twitter4j-content",
-      package_url: "https://github.com/Adobe-Consulting-Services/com.adobe.acs.bundles.twitter4j/\
-      releases/download/com.adobe.acs.bundles.twitter4j-1.0.0/com.adobe.acs.bundles.twitter4j-content-1.0.0.zip",
-      file_name: "com.adobe.acs.bundles.twitter4j-content-1.0.0.zip",
-      install_package_ansible: false,
-      install_package_docker: true,
-      docker_host: "unix://tmp/docker.sock"
-    }
-    - {
-      role: "{{ role_name }}",
-      aem_port: "5502",
-      aem_host: "{{ dockerhost_ip.stdout }}",
-      debug_hide: "false",
-      simple_name: "aemdesign-aem-core using ansible",
-      group_name: "design.aem",
-      package_version: "2.0.521",
-      package_name: "aemdesign-aem-core-deploy",
-      package_url: "https://github.com/aem-design/aemdesign-aem-core/releases/download/2.0.521/\
-      aemdesign-aem-core-deploy-2.0.521.zip",
-      file_name: "aemdesign-aem-core-deploy-2.0.521.zip",
-      install_package_ansible: true,
-      install_package_docker: false,
-      docker_host: "unix://tmp/docker.sock"
-    }
+    - role: "aem_design.aem_license"
+      vars:
+        aem_license_key: "{{ service_aem_license_key }}"
+        aem_license_name: "{{ service_aem_license_name }}"
+        aem_port: "5502"
+        aem_host: "{{ dockerhost_ip.stdout }}"
+        debug_hide: false
+    - role: "aem_design.aem_verify"
+      vars:
+        aem_port: "5502"
+        aem_host: "{{ dockerhost_ip.stdout }}"
+        debug_hide: false
 
   post_tasks:
     - name: install aem packages {{ role_comment }}
