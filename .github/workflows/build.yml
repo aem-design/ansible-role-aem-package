@@ -69,7 +69,7 @@ jobs:
       - name: Push role to Ansible Galaxy
         uses: robertdebock/galaxy-action@1.1.0
         with:
-          galaxy_api_key: ${{ secrets.galaxy_api_key }}
+          galaxy_api_key: ${{ env.ANSIBLE_GALAXY_API_KEY }}
 
       - name: create release ${{ env.GITHUB_TAG }}
         if: github.ref == 'refs/heads/master'
