@@ -56,6 +56,8 @@ jobs:
           echo "ROLE_NAMESPACE=${ROLE_NAMESPACE}" >> $GITHUB_ENV
           echo "ROLE_NAME_FULL=${ROLE_NAME_FULL}" >> $GITHUB_ENV
 
+          source <(curl -sL https://github.com/aem-design/aemdesign-docker/releases/latest/download/github_get_version.sh)
+
       - name: install dependencies
         run: |
           sudo apt-get install -y python3 python3-pip python3-venv build-essential libssl-dev libffi-dev python3-dev libcurl4-openssl-dev curl
@@ -79,8 +81,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ env.GITHUB_TAG }}
-          release_name: ${{ env.GITHUB_TAG }}
+          tag_name: ${{ steps.config.outputs.CURRENT_VERSION }}
+          release_name: ${{ steps.config.outputs.CURRENT_VERSION }}
           body: ${{ steps.config.outputs.GIT_RELEASE_NOTES }}
           draft: false
           prerelease: false
